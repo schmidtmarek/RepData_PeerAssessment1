@@ -1,7 +1,7 @@
 ---
 title: "Reproducible Research: Peer Assessment 1"
 author: "Marek Schmidt"
-date: "Sunday, November 16, 2014"
+date: "Sunday, December 14, 2014"
 output: 
   html_document:
     keep_md: true
@@ -36,11 +36,10 @@ md_prep <- melt(mdrm, id="date", measure.vars="steps")
 md_hist <- dcast(md_prep, date ~ variable, sum)
 ```
 
-And print histogram from only non-empty days (NAs were removed):
+And print histogram from steps per day (NAs were removed, it is not a barplot):
 
 ```{r}
-library(ggplot2)
-qplot(md_hist$date, md_hist$steps, geom="histogram", stat = "identity", xlab="Days", ylab="Sum of Steps")
+hist(md_hist$steps, main="Histogram of the 'total # of steps per day'")
 ```
 
 Now calculate mean & median for 'Sum of steps per day' (without NAs):
@@ -102,11 +101,10 @@ md_prep <- melt(md_imputs, id="date", measure.vars="steps")
 md_hist2 <- dcast(md_prep, date ~ variable, sum)
 ```
 
-And print histogram from only non-empty days (NAs were removed):
+And print histogram of the 'total # of steps per day', now difference is missing data averaged:
 
 ```{r}
-library(ggplot2)
-qplot(md_hist2$date, md_hist2$steps, geom="histogram", stat = "identity", xlab="Days", ylab="Sum of Steps")
+hist(md_hist2$steps, main="Histogram of the 'total # of steps per day' - imputed")
 ```
 
 Now calculate mean & median for 'Sum of steps per day' (without NAs):
@@ -120,5 +118,22 @@ Mean value is `r mdrm_mean2 ` and median value is `r mdrm_median2`. Impact of im
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
+```{r}
+md_imputs$weekday <- weekdays(as.POSIXlt(md_imputs$date))
+md_imputs$weekend <- as.integer(lapply(md_imputs$weekday, function(x) {if(x == "Saturday" || x == "Sunday") 1 else 0}))
 
+md_prep_wend <- melt(md_imputs[md_imputs$weekend==1,], id="interval", measure.vars="steps")
+md_prep_wday <- melt(md_imputs[md_imputs$weekend==0,], id="interval", measure.vars="steps")
+
+md_plot2 <- dcast(md_prep_wend, interval ~ variable, mean)
+md_plot3 <- dcast(md_prep_wday, interval ~ variable, mean)
+```
+
+Yes, there is different pattern during weekends as below (more walk during the day).
+
+```{r}
+par(mfrow=c(2,1), pin=c(5,2.8), mar=c(1,4,3,1))
+plot(md_plot2, type="l", ylab="weekends")
+plot(md_plot3, type="l", ylab="weekdays")
+```
 

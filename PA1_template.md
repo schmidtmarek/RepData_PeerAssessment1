@@ -1,6 +1,6 @@
 # Reproducible Research: Peer Assessment 1
 Marek Schmidt  
-Sunday, November 16, 2014  
+Sunday, December 14, 2014  
 
 
 ## Loading and preprocessing the data
@@ -34,15 +34,14 @@ md_prep <- melt(mdrm, id="date", measure.vars="steps")
 md_hist <- dcast(md_prep, date ~ variable, sum)
 ```
 
-And print histogram from only non-empty days (NAs were removed):
+And print histogram from steps per day (NAs were removed, it is not a barplot):
 
 
 ```r
-library(ggplot2)
-qplot(md_hist$date, md_hist$steps, geom="histogram", stat = "identity", xlab="Days", ylab="Sum of Steps")
+hist(md_hist$steps, main="Histogram of the 'total # of steps per day'")
 ```
 
-![plot of chunk unnamed-chunk-4](./PA1_template_files/figure-html/unnamed-chunk-4.png) 
+![](PA1_template_files/figure-html/unnamed-chunk-4-1.png) 
 
 Now calculate mean & median for 'Sum of steps per day' (without NAs):
 
@@ -52,7 +51,7 @@ mdrm_mean <- mean(md_hist$steps)
 mdrm_median <- as.numeric(median(md_hist$steps))
 ```
 
-Mean value is 1.0766 &times; 10<sup>4</sup> and median value is 1.0765 &times; 10<sup>4</sup>.
+Mean value is 1.0766189\times 10^{4} and median value is 1.0765\times 10^{4}.
 
 ## What is the average daily activity pattern?
 
@@ -65,7 +64,7 @@ md_plot <- dcast(md_prep2, interval ~ variable, mean)
 plot(md_plot, type="l", ylab="AVG # of steps")
 ```
 
-![plot of chunk unnamed-chunk-6](./PA1_template_files/figure-html/unnamed-chunk-6.png) 
+![](PA1_template_files/figure-html/unnamed-chunk-6-1.png) 
 
 Find maximum number of steps and associated interval:
 
@@ -75,7 +74,7 @@ max_steps <- max(md_plot$steps)
 max_interval <- md_plot[md_plot$steps==max_steps,"interval"]
 ```
 
-Maximum average of steps was 206.1698 and it was in interval: 835.
+Maximum average of steps was 206.1698113 and it was in interval: 835.
 
 ## Imputing missing values
 
@@ -111,15 +110,14 @@ md_prep <- melt(md_imputs, id="date", measure.vars="steps")
 md_hist2 <- dcast(md_prep, date ~ variable, sum)
 ```
 
-And print histogram from only non-empty days (NAs were removed):
+And print histogram of the 'total # of steps per day', now difference is missing data averaged:
 
 
 ```r
-library(ggplot2)
-qplot(md_hist2$date, md_hist2$steps, geom="histogram", stat = "identity", xlab="Days", ylab="Sum of Steps")
+hist(md_hist2$steps, main="Histogram of the 'total # of steps per day' - imputed")
 ```
 
-![plot of chunk unnamed-chunk-11](./PA1_template_files/figure-html/unnamed-chunk-11.png) 
+![](PA1_template_files/figure-html/unnamed-chunk-11-1.png) 
 
 Now calculate mean & median for 'Sum of steps per day' (without NAs):
 
@@ -129,9 +127,30 @@ mdrm_mean2 <- mean(md_hist2$steps)
 mdrm_median2 <- as.numeric(median(md_hist2$steps))
 ```
 
-Mean value is 1.0766 &times; 10<sup>4</sup> and median value is 1.0762 &times; 10<sup>4</sup>. Impact of imputed data is: new median is smaller and mean is as before.
+Mean value is 1.0765639\times 10^{4} and median value is 1.0762\times 10^{4}. Impact of imputed data is: new median is smaller and mean is as before.
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
 
+```r
+md_imputs$weekday <- weekdays(as.POSIXlt(md_imputs$date))
+md_imputs$weekend <- as.integer(lapply(md_imputs$weekday, function(x) {if(x == "Saturday" || x == "Sunday") 1 else 0}))
+
+md_prep_wend <- melt(md_imputs[md_imputs$weekend==1,], id="interval", measure.vars="steps")
+md_prep_wday <- melt(md_imputs[md_imputs$weekend==0,], id="interval", measure.vars="steps")
+
+md_plot2 <- dcast(md_prep_wend, interval ~ variable, mean)
+md_plot3 <- dcast(md_prep_wday, interval ~ variable, mean)
+```
+
+Yes, there is different pattern during weekends as below (more walk during the day).
+
+
+```r
+par(mfrow=c(2,1), pin=c(5,2.8), mar=c(1,4,3,1))
+plot(md_plot2, type="l", ylab="weekends")
+plot(md_plot3, type="l", ylab="weekdays")
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-14-1.png) 
 
